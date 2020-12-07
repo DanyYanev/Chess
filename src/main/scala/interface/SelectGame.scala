@@ -1,20 +1,16 @@
 package interface
 
+import interface.SelectGame.toMenuItem
+
 import java.io.File
 
 case class SelectGame() extends MenuItem {
-  override val desc = "Main menu"
-  lazy val games = SelectGame.getListOfFiles(SelectGame.gamesDir)
+  override val desc = "Select game"
+  lazy val games: List[MenuItem] = SelectGame.getListOfFiles(SelectGame.gamesDir).map(toMenuItem) :+ Exit()
 
   override def body(): MenuItem = {
-    for((option, i) <- games zip (LazyList from 1)) {
-      println(s"$i. ${option.getName}")
-    }
-
-    print("Enter choice: ")
-    val choice = scala.io.StdIn.readInt()
-    println(s"Playing ${games(choiceToIndex(choice))}")
-    this
+    printMenuItems(games)
+    handleInput(games)
   }
 }
 
@@ -27,6 +23,17 @@ object SelectGame {
       d.listFiles.filter(_.isFile).toList
     } else {
       List[File]()
+    }
+  }
+
+  private def toMenuItem(file: File): MenuItem = {
+    new MenuItem {
+      override val desc: String = file.getName
+
+      override def body(): MenuItem = {
+        println(s"Playing ${file.getName}")
+        Exit()
+      }
     }
   }
 }

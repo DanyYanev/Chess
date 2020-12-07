@@ -5,17 +5,12 @@ import interface.MainMenu.menuOptions
 case class MainMenu() extends MenuItem {
   override val desc = "Main menu"
   override def body(): MenuItem = {
-    for((option, i) <- menuOptions zip (LazyList from 1)) {
-      println(s"$i. $option")
-    }
-
-    print("Enter choice: ")
-    val choice = scala.io.StdIn.readInt()
-    menuOptions(choiceToIndex(choice))
+    printMenuItems(menuOptions)
+    handleInput(menuOptions)
   }
 }
 
-object MainMenu{
+object MainMenu {
   val menuOptions = List(
     SelectGame(),
     Exit()
