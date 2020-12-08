@@ -16,10 +16,17 @@ case class ChessGame(board: Board = defaultSetup, turn: Color = Color.White) {
     val stringBoard = board.map(_.map(optionToString))
     stringBoard.map(_.mkString(" ")).mkString("\n")
   }
+
+  def getPiece(coordinate: Coordinate): Option[GamePiece] = {
+    val x = coordinate.rank - 1
+    val y = coordinate.file - 'a'
+
+    board(x)(y)
+  }
 }
 
 object ChessGame {
-  val boardDimention = 8
+  val boardDimension = 8
   type Board = Array[Array[Option[GamePiece]]]
 
   val noPiece = None

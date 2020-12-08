@@ -23,6 +23,11 @@ class ChessGameSpec extends AnyWordSpec with should.Matchers {
       game.toASCIIBoard mustBe expectedASCII
     }
 
+    "getPiece" in {
+      val game = new ChessGame()
+      game.getPiece(Coordinate('a', 1).get) mustBe Some(whiteRook)
+    }
+
     "nextMove" in {
       val game = new ChessGame()
       val expectedBoard: Board = Array(
