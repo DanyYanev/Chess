@@ -1,5 +1,7 @@
 package interface
 
+import com.whitehatgaming.UserInputFile
+import core.ChessEngine
 import interface.SelectGame.toMenuItem
 
 import java.io.File
@@ -32,6 +34,8 @@ object SelectGame {
 
       override def body(): MenuItem = {
         println(s"Playing ${file.getName}")
+        val input = new UserInputFile(file.getAbsolutePath)
+        val engine = new ChessEngine(input).run()
         Exit()
       }
     }
