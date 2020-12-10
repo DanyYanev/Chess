@@ -104,11 +104,12 @@ object MoveValidator {
   def getValidMovesInDir(game: ChessGame, coord: Coordinate, dir: Direction): Set[Coordinate] = {
     val startPiece = game.getPiece(coord).get
     val startRow = coord.row
-    val maxMoves = game.dimension - 1
+    val startCol = coord.col
     var metEnemy = false
     dir match {
       case Down =>
-        val maxDistance = min(maxMoves, game.dimension - 1 - coord.row)
+        val maxMoves = game.dimensionCol - 1
+        val maxDistance = min(maxMoves, game.dimensionCol - 1 - coord.row)
         Iterator.iterate(startRow + 1, maxDistance)(_ + 1)
           .takeWhile {
             row =>
@@ -120,8 +121,9 @@ object MoveValidator {
                 true
               } else
                 false
-          }.flatMap(validRows => Coordinate(validRows, coord.col)).toSet
+          }.flatMap(validRow => Coordinate(validRow, coord.col)).toSet
       case Up =>
+        val maxMoves = game.dimensionCol - 1
         val maxDistance = min(maxMoves, coord.row)
         Iterator.iterate(startRow - 1, maxDistance)(_ - 1)
           .takeWhile {
@@ -134,8 +136,37 @@ object MoveValidator {
                 true
               } else
                 false
-          }.flatMap(validRows => Coordinate(validRows, coord.col)).toSet
-      case _ => Set()
+          }.flatMap(validRow => Coordinate(validRow, coord.col)).toSet
+      case Direction.Left =>
+        val maxMoves = game.dimensionRow - 1
+        val maxDistance = min(maxMoves, coord.col)
+        Iterator.iterate(startCol - 1, maxDistance)(_ - 1)
+          .takeWhile {
+            col =>
+              val piece = game.getPiece(Coordinate(coord.row, col).get)
+              if(piece.isEmpty && !metEnemy)
+                true
+              else if (!metEnemy && isEnemy(piece, startPiece.color.opposite)) {
+                metEnemy = true
+                true
+              } else
+                false
+          }.flatMap(validCol => Coordinate(coord.row, validCol)).toSet
+      case Direction.Right =>
+        val maxMoves = game.dimensionRow - 1
+        val maxDistance = min(maxMoves, game.dimensionRow - 1 - coord.row)
+        Iterator.iterate(startCol + 1, maxDistance)(_ + 1)
+          .takeWhile {
+            col =>
+              val piece = game.getPiece(Coordinate(coord.row, col).get)
+              if(piece.isEmpty && !metEnemy)
+                true
+              else if (!metEnemy && isEnemy(piece, startPiece.color.opposite)) {
+                metEnemy = true
+                true
+              } else
+                false
+          }.flatMap(validCol => Coordinate(coord.row, validCol)).toSet
     }
   }
 

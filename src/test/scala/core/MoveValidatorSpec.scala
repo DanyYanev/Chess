@@ -116,6 +116,51 @@ class MoveValidatorSpec extends AnyWordSpec with should.Matchers {
 
         MoveValidator.getValidMovesLeft(game, Coordinate(0, 3).get) shouldBe expectedValidMoves
       }
+
+      "pawn blocks white" in {
+        val board: Board = Array(
+          Array(noPiece, blackPawn, noPiece, whiteRook),
+        )
+        val game = new ChessGame(board)
+
+        val expectedValidMoves = Set(
+          Coordinate(0, 1),
+          Coordinate(0, 2),
+        ).flatten
+
+        MoveValidator.getValidMovesLeft(game, Coordinate(0, 3).get) shouldBe expectedValidMoves
+      }
+    }
+
+    "validateRight" should {
+      "empty white" in {
+        val board: Board = Array(
+          Array(whiteRook, noPiece, noPiece, noPiece),
+        )
+        val game = new ChessGame(board)
+
+        val expectedValidMoves = Set(
+          Coordinate(0, 1),
+          Coordinate(0, 2),
+          Coordinate(0, 3),
+        ).flatten
+
+        MoveValidator.getValidMovesRight(game, Coordinate(0, 0).get) shouldBe expectedValidMoves
+      }
+
+      "pawn blocks white" in {
+        val board: Board = Array(
+          Array(whiteRook, noPiece, blackPawn, noPiece),
+        )
+        val game = new ChessGame(board)
+
+        val expectedValidMoves = Set(
+          Coordinate(0, 1),
+          Coordinate(0, 2),
+        ).flatten
+
+        MoveValidator.getValidMovesRight(game, Coordinate(0, 0).get) shouldBe expectedValidMoves
+      }
     }
   }
 }
