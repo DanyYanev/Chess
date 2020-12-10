@@ -1,10 +1,13 @@
 package core
 
-import core.ChessGame.{Board, defaultSetup, optionToString}
+import core.ChessGame.{Board, defaultBoardDimension, defaultSetup, optionToString}
 
 case class ChessGame(board: Board = defaultSetup, turn: Color = Color.White) {
+  val dimension = board.length
+  val whiteKing: Coordinate = Coordinate(0, 4).get
+  val blackKing: Coordinate = Coordinate(7, 4).get
 
-  def nextTurn: ChessGame = {
+  def nextTurn(move: Move): ChessGame = {
     this
   }
 
@@ -17,16 +20,12 @@ case class ChessGame(board: Board = defaultSetup, turn: Color = Color.White) {
     stringBoard.map(_.mkString(" ")).mkString("\n")
   }
 
-  def getPiece(coordinate: Coordinate): Option[GamePiece] = {
-    val x = coordinate.rank - 1
-    val y = coordinate.file - 'a'
-
-    board(x)(y)
-  }
+  def getPiece(coordinate: Coordinate): Option[GamePiece] =
+    board(coordinate.row)(coordinate.col)
 }
 
 object ChessGame {
-  val boardDimension = 8
+  val defaultBoardDimension = 8
   type Board = Array[Array[Option[GamePiece]]]
 
   val noPiece = None

@@ -9,6 +9,10 @@ case class GamePiece(piece: Piece, color: Color){
   }
 }
 
+object GamePiece {
+  def unapply(piece: GamePiece): Option[(Piece, Color)] = Some(piece.piece, piece.color)
+}
+
 sealed abstract class Piece(val alias: String) extends EnumEntry
 
 object Piece extends Enum[Piece] {
@@ -23,11 +27,24 @@ object Piece extends Enum[Piece] {
   case object King   extends Piece("K")
 }
 
-sealed trait Color extends EnumEntry
+sealed trait Color extends EnumEntry {
+  def opposite: Color
+}
 
 object Color extends Enum[Color] {
   val values = findValues
 
-  case object White extends Color
-  case object Black extends Color
+  case object White extends Color { override def opposite: Color = Black }
+  case object Black extends Color { override def opposite: Color = White }
+}
+
+sealed trait Direction extends EnumEntry
+
+object Direction extends Enum[Color] {
+  val values = findValues
+
+  case object Up extends Direction
+  case object Down extends Direction
+  case object Left extends Direction
+  case object Right extends Direction
 }
