@@ -47,4 +47,8 @@ object Direction extends Enum[Color] {
   case object Down extends Direction
   case object Left extends Direction
   case object Right extends Direction
+  case object UpRight extends Direction
+  case object UpLeft extends Direction
+  case object DownRight extends Direction
+  case object DownLeft extends Direction
 }

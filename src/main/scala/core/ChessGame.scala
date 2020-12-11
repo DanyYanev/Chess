@@ -3,8 +3,8 @@ package core
 import core.ChessGame.{Board, defaultBoardDimension, defaultSetup, optionToString}
 
 case class ChessGame(board: Board = defaultSetup, turn: Color = Color.White) {
-  val dimensionCol = board.length
-  val dimensionRow = board(0).length
+  val dimensionRow = board.length
+  val dimensionCol = board(0).length
   val whiteKing: Coordinate = Coordinate(0, 4).get
   val blackKing: Coordinate = Coordinate(7, 4).get
 

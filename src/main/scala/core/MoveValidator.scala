@@ -2,12 +2,10 @@ package core
 
 import core.ChessGame.defaultBoardDimension
 import core.Color.{Black, White}
-import core.Direction.{Down, Up}
+import core.Direction.{Down, DownLeft, DownRight, Up, UpLeft, UpRight}
 import core.Piece.{King, Pawn, Rook}
 
-import math.min
-import scala.::
-import scala.collection.immutable.Nil.:::
+import math._
 
 class CoordinateDTO(val file: Char, val rank: Int){
   def toCoordinate: Coordinate = new Coordinate(file - 'a', rank - 1)
@@ -64,10 +62,16 @@ object MoveValidator {
           i <- startCoord.row - 1 to startCoord.row + 1
           j <- startCoord.col - 1 to startCoord.col + 1
         } yield Coordinate(i, j)
+
         possibleCoordinates.contains(move.to)
       case GamePiece(Rook, _) =>
-        val possibleCoordinates = getValidMovesForward(game, move.from) ++ getValidMovesBackwards(game, move.from)
-        possibleCoordinates.contains(move.to)
+        val possibleMoves =
+          getValidMovesUp(game, move.from) ++
+            getValidMovesDown(game, move.from) ++
+            getValidMovesLeft(game, move.from) ++
+            getValidMovesRight(game, move.from)
+
+        possibleMoves.contains(move.to)
       case _ => false
     }
   }
@@ -93,23 +97,26 @@ object MoveValidator {
     }
   }
 
+  def getValidMovesUp(game: ChessGame, coord: Coordinate): Set[Coordinate] = getValidMovesInDir(game, coord, Direction.Up)
+  def getValidMovesDown(game: ChessGame, coord: Coordinate): Set[Coordinate] = getValidMovesInDir(game, coord, Direction.Down)
+  def getValidMovesRight(game: ChessGame, coord: Coordinate): Set[Coordinate] = getValidMovesInDir(game, coord, Direction.Right)
   def getValidMovesLeft(game: ChessGame, coord: Coordinate): Set[Coordinate] = getValidMovesInDir(game, coord, Direction.Left)
 
-  def getValidMovesRight(game: ChessGame, coord: Coordinate): Set[Coordinate] = getValidMovesInDir(game, coord, Direction.Right)
+  def getValidMovesUpRight(game: ChessGame, coord: Coordinate): Set[Coordinate] = getValidMovesInDir(game, coord, Direction.UpRight)
+  def getValidMovesUpLeft(game: ChessGame, coord: Coordinate): Set[Coordinate] = getValidMovesInDir(game, coord, Direction.UpLeft)
+  def getValidMovesDownRight(game: ChessGame, coord: Coordinate): Set[Coordinate] = getValidMovesInDir(game, coord, Direction.DownRight)
+  def getValidMovesDownLeft(game: ChessGame, coord: Coordinate): Set[Coordinate] = getValidMovesInDir(game, coord, Direction.DownLeft)
 
-  def getValidMovesDown(game: ChessGame, coord: Coordinate): Set[Coordinate] = getValidMovesInDir(game, coord, Direction.Down)
-
-  def getValidMovesUp(game: ChessGame, coord: Coordinate): Set[Coordinate] = getValidMovesInDir(game, coord, Direction.Up)
-
-  def getValidMovesInDir(game: ChessGame, coord: Coordinate, dir: Direction): Set[Coordinate] = {
+  //TODO Fix names and genaral refactoring of this garbage code
+  def getValidMovesInDir(game: ChessGame, coord: Coordinate, dir: Direction, maxMoves1: Int = defaultBoardDimension): Set[Coordinate] = {
     val startPiece = game.getPiece(coord).get
     val startRow = coord.row
     val startCol = coord.col
     var metEnemy = false
     dir match {
       case Down =>
-        val maxMoves = game.dimensionCol - 1
-        val maxDistance = min(maxMoves, game.dimensionCol - 1 - coord.row)
+        val maxMoves = min(game.dimensionRow - 1, maxMoves1)
+        val maxDistance = min(maxMoves, game.dimensionRow - 1 - coord.row)
         Iterator.iterate(startRow + 1, maxDistance)(_ + 1)
           .takeWhile {
             row =>
@@ -123,7 +130,7 @@ object MoveValidator {
                 false
           }.flatMap(validRow => Coordinate(validRow, coord.col)).toSet
       case Up =>
-        val maxMoves = game.dimensionCol - 1
+        val maxMoves = min(game.dimensionRow - 1, maxMoves1)
         val maxDistance = min(maxMoves, coord.row)
         Iterator.iterate(startRow - 1, maxDistance)(_ - 1)
           .takeWhile {
@@ -138,7 +145,7 @@ object MoveValidator {
                 false
           }.flatMap(validRow => Coordinate(validRow, coord.col)).toSet
       case Direction.Left =>
-        val maxMoves = game.dimensionRow - 1
+        val maxMoves = min(game.dimensionCol - 1, maxMoves1)
         val maxDistance = min(maxMoves, coord.col)
         Iterator.iterate(startCol - 1, maxDistance)(_ - 1)
           .takeWhile {
@@ -153,8 +160,8 @@ object MoveValidator {
                 false
           }.flatMap(validCol => Coordinate(coord.row, validCol)).toSet
       case Direction.Right =>
-        val maxMoves = game.dimensionRow - 1
-        val maxDistance = min(maxMoves, game.dimensionRow - 1 - coord.row)
+        val maxMoves = min(game.dimensionCol - 1, maxMoves1)
+        val maxDistance = min(maxMoves, game.dimensionCol - 1 - coord.row)
         Iterator.iterate(startCol + 1, maxDistance)(_ + 1)
           .takeWhile {
             col =>
@@ -167,6 +174,82 @@ object MoveValidator {
               } else
                 false
           }.flatMap(validCol => Coordinate(coord.row, validCol)).toSet
+      case UpRight =>
+        val maxMovesByCol = game.dimensionCol - 1
+        val maxMovesByRow = game.dimensionRow - 1
+        val maxMoves2 = min(maxMovesByCol, maxMovesByRow)
+        val maxDistance = min(maxMoves1, maxMoves2)
+
+        Iterator.iterate(1, maxDistance)(_ + 1)
+          .takeWhile {
+            offset =>
+              val newCoord = Coordinate(startRow + offset, startCol + offset).get
+              val piece = game.getPiece(newCoord)
+              if(piece.isEmpty && !metEnemy)
+                true
+              else if (!metEnemy && isEnemy(piece, startPiece.color.opposite)) {
+                metEnemy = true
+                true
+              } else
+                false
+          }.flatMap(validOffset => Coordinate(coord.row + validOffset, coord.col + validOffset)).toSet
+      case UpLeft =>
+        val maxMovesByCol = startCol
+        val maxMovesByRow = game.dimensionRow - 1 - startRow
+        val maxMoves2 = min(maxMovesByCol, maxMovesByRow)
+        val maxDistance = min(maxMoves1, maxMoves2)
+        Iterator.iterate(1, maxDistance)(_ + 1)
+          .takeWhile {
+            offset =>
+              val newCoord = Coordinate(startRow + offset, startCol - offset).get
+              val piece = game.getPiece(newCoord)
+              if(piece.isEmpty && !metEnemy)
+                true
+              else if (!metEnemy && isEnemy(piece, startPiece.color.opposite)) {
+                metEnemy = true
+                true
+              } else
+                false
+          }.flatMap(validOffset => Coordinate(coord.row + validOffset, coord.col - validOffset)).toSet
+      case DownLeft =>
+        //Todo figure out naming
+        val maxMovesByCol = game.dimensionRow - 1
+        val maxMovesByRow = game.dimensionCol - 1
+        val maxMoves2 = min(maxMovesByCol, maxMovesByRow)
+        val maxDistance = min(maxMoves1, maxMoves2)
+
+        Iterator.iterate(1, maxDistance)(_ + 1)
+          .takeWhile {
+            offset =>
+              val newCoord = Coordinate(startRow - offset, startCol - offset).get
+              val piece = game.getPiece(newCoord)
+              if(piece.isEmpty && !metEnemy)
+                true
+              else if (!metEnemy && isEnemy(piece, startPiece.color.opposite)) {
+                metEnemy = true
+                true
+              } else
+                false
+          }.flatMap(validOffset => Coordinate(coord.row - validOffset, coord.col - validOffset)).toSet
+      case DownRight =>
+        val maxMovesByCol = game.dimensionCol - 1
+        val maxMovesByRow = startRow
+        val maxMoves2 = min(maxMovesByCol, maxMovesByRow)
+        val maxDistance = min(maxMoves1, maxMoves2)
+
+        Iterator.iterate(1, maxDistance)(_ + 1)
+          .takeWhile {
+            offset =>
+              val newCoord = Coordinate(startRow - offset, startCol + offset).get
+              val piece = game.getPiece(newCoord)
+              if(piece.isEmpty && !metEnemy)
+                true
+              else if (!metEnemy && isEnemy(piece, startPiece.color.opposite)) {
+                metEnemy = true
+                true
+              } else
+                false
+          }.flatMap(validOffset => Coordinate(coord.row - validOffset, coord.col + validOffset)).toSet
     }
   }
 
