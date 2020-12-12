@@ -66,8 +66,8 @@ object MoveValidator {
         possibleCoordinates.contains(move.to)
       case GamePiece(Rook, _) =>
         val possibleMoves =
-          getValidMovesUp(game, move.from) ++
-            getValidMovesDown(game, move.from) ++
+          getValidMovesDown(game, move.from) ++
+            getValidMovesUp(game, move.from) ++
             getValidMovesLeft(game, move.from) ++
             getValidMovesRight(game, move.from)
 
@@ -81,31 +81,21 @@ object MoveValidator {
     val startPiece = game.getPiece(coord).get
     startPiece.color match {
       case White =>
-        getValidMovesDown(game, coord)
-      case Black =>
-        getValidMovesUp(game, coord)
-    }
-  }
-
-  def getValidMovesBackwards(game: ChessGame, coord: Coordinate): Set[Coordinate] = {
-    val startPiece = game.getPiece(coord).get
-    startPiece.color match {
-      case White =>
         getValidMovesUp(game, coord)
       case Black =>
         getValidMovesDown(game, coord)
     }
   }
 
-  def getValidMovesUp(game: ChessGame, coord: Coordinate): Set[Coordinate] = getValidMovesInDir(game, coord, Direction.Up)
-  def getValidMovesDown(game: ChessGame, coord: Coordinate): Set[Coordinate] = getValidMovesInDir(game, coord, Direction.Down)
-  def getValidMovesRight(game: ChessGame, coord: Coordinate): Set[Coordinate] = getValidMovesInDir(game, coord, Direction.Right)
-  def getValidMovesLeft(game: ChessGame, coord: Coordinate): Set[Coordinate] = getValidMovesInDir(game, coord, Direction.Left)
+  def getValidMovesUp(game: ChessGame, coord: Coordinate, maxMoves: Int = defaultBoardDimension): Set[Coordinate] = getValidMovesInDir(game, coord, Direction.Up, maxMoves)
+  def getValidMovesDown(game: ChessGame, coord: Coordinate, maxMoves: Int = defaultBoardDimension): Set[Coordinate] = getValidMovesInDir(game, coord, Direction.Down, maxMoves)
+  def getValidMovesRight(game: ChessGame, coord: Coordinate, maxMoves: Int = defaultBoardDimension): Set[Coordinate] = getValidMovesInDir(game, coord, Direction.Right, maxMoves)
+  def getValidMovesLeft(game: ChessGame, coord: Coordinate, maxMoves: Int = defaultBoardDimension): Set[Coordinate] = getValidMovesInDir(game, coord, Direction.Left, maxMoves)
 
-  def getValidMovesUpRight(game: ChessGame, coord: Coordinate): Set[Coordinate] = getValidMovesInDir(game, coord, Direction.UpRight)
-  def getValidMovesUpLeft(game: ChessGame, coord: Coordinate): Set[Coordinate] = getValidMovesInDir(game, coord, Direction.UpLeft)
-  def getValidMovesDownRight(game: ChessGame, coord: Coordinate): Set[Coordinate] = getValidMovesInDir(game, coord, Direction.DownRight)
-  def getValidMovesDownLeft(game: ChessGame, coord: Coordinate): Set[Coordinate] = getValidMovesInDir(game, coord, Direction.DownLeft)
+  def getValidMovesUpRight(game: ChessGame, coord: Coordinate, maxMoves: Int = defaultBoardDimension): Set[Coordinate] = getValidMovesInDir(game, coord, Direction.UpRight, maxMoves)
+  def getValidMovesUpLeft(game: ChessGame, coord: Coordinate, maxMoves: Int = defaultBoardDimension): Set[Coordinate] = getValidMovesInDir(game, coord, Direction.UpLeft, maxMoves)
+  def getValidMovesDownRight(game: ChessGame, coord: Coordinate, maxMoves: Int = defaultBoardDimension): Set[Coordinate] = getValidMovesInDir(game, coord, Direction.DownRight, maxMoves)
+  def getValidMovesDownLeft(game: ChessGame, coord: Coordinate, maxMoves: Int = defaultBoardDimension): Set[Coordinate] = getValidMovesInDir(game, coord, Direction.DownLeft, maxMoves)
 
   //TODO Fix names and genaral refactoring of this garbage code
   def getValidMovesInDir(game: ChessGame, coord: Coordinate, dir: Direction, maxMoves1: Int = defaultBoardDimension): Set[Coordinate] = {
@@ -114,10 +104,10 @@ object MoveValidator {
     val startCol = coord.col
     var metEnemy = false
     dir match {
-      case Down =>
+      case Up =>
         val maxMoves = min(game.dimensionRow - 1, maxMoves1)
-        val maxDistance = min(maxMoves, game.dimensionRow - 1 - coord.row)
-        Iterator.iterate(startRow + 1, maxDistance)(_ + 1)
+        val maxDistance = min(maxMoves, coord.row)
+        Iterator.iterate(startRow - 1, maxDistance)(_ - 1)
           .takeWhile {
             row =>
               val piece = game.getPiece(Coordinate(row, coord.col).get)
@@ -129,10 +119,10 @@ object MoveValidator {
               } else
                 false
           }.flatMap(validRow => Coordinate(validRow, coord.col)).toSet
-      case Up =>
+      case Down =>
         val maxMoves = min(game.dimensionRow - 1, maxMoves1)
-        val maxDistance = min(maxMoves, coord.row)
-        Iterator.iterate(startRow - 1, maxDistance)(_ - 1)
+        val maxDistance = min(maxMoves, game.dimensionRow - 1 - coord.row)
+        Iterator.iterate(startRow + 1, maxDistance)(_ + 1)
           .takeWhile {
             row =>
               val piece = game.getPiece(Coordinate(row, coord.col).get)
@@ -174,9 +164,9 @@ object MoveValidator {
               } else
                 false
           }.flatMap(validCol => Coordinate(coord.row, validCol)).toSet
-      case UpRight =>
-        val maxMovesByCol = game.dimensionCol - 1
-        val maxMovesByRow = game.dimensionRow - 1
+      case DownRight =>
+        val maxMovesByCol = game.dimensionCol - 1 - startCol
+        val maxMovesByRow = game.dimensionRow - 1 - startRow
         val maxMoves2 = min(maxMovesByCol, maxMovesByRow)
         val maxDistance = min(maxMoves1, maxMoves2)
 
@@ -193,7 +183,7 @@ object MoveValidator {
               } else
                 false
           }.flatMap(validOffset => Coordinate(coord.row + validOffset, coord.col + validOffset)).toSet
-      case UpLeft =>
+      case DownLeft =>
         val maxMovesByCol = startCol
         val maxMovesByRow = game.dimensionRow - 1 - startRow
         val maxMoves2 = min(maxMovesByCol, maxMovesByRow)
@@ -211,10 +201,10 @@ object MoveValidator {
               } else
                 false
           }.flatMap(validOffset => Coordinate(coord.row + validOffset, coord.col - validOffset)).toSet
-      case DownLeft =>
+      case UpLeft =>
         //Todo figure out naming
-        val maxMovesByCol = game.dimensionRow - 1
-        val maxMovesByRow = game.dimensionCol - 1
+        val maxMovesByCol = startCol
+        val maxMovesByRow = startRow
         val maxMoves2 = min(maxMovesByCol, maxMovesByRow)
         val maxDistance = min(maxMoves1, maxMoves2)
 
@@ -231,8 +221,8 @@ object MoveValidator {
               } else
                 false
           }.flatMap(validOffset => Coordinate(coord.row - validOffset, coord.col - validOffset)).toSet
-      case DownRight =>
-        val maxMovesByCol = game.dimensionCol - 1
+      case UpRight =>
+        val maxMovesByCol = game.dimensionCol - 1 - startCol
         val maxMovesByRow = startRow
         val maxMoves2 = min(maxMovesByCol, maxMovesByRow)
         val maxDistance = min(maxMoves1, maxMoves2)

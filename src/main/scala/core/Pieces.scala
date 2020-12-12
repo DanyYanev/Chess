@@ -40,7 +40,7 @@ object Color extends Enum[Color] {
 
 sealed trait Direction extends EnumEntry
 
-object Direction extends Enum[Color] {
+object Direction extends Enum[Direction] {
   val values = findValues
 
   case object Up extends Direction
