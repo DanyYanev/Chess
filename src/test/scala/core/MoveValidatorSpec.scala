@@ -1,36 +1,15 @@
 package core
 
 import core.ChessGame._
-import core.MoveValidator.getValidMovesInDir
+import core.MoveValidator.{getAllPossibleMoves, getValidMovesInDir}
 import org.scalatest.matchers.should
 import org.scalatest.wordspec.AnyWordSpec
 
 class MoveValidatorSpec extends AnyWordSpec with should.Matchers {
 
   "MoveValidator" when {
-    "validate in all 8 directions" should {
-      "queen top left" in {
-        val board: Board = Array(
-          Array(whiteQueen, whitePawn),
-          Array(whitePawn, noPiece),
-          Array(noPiece, noPiece),
-          Array(noPiece, noPiece),
-          Array(noPiece, noPiece),
-        )
-        val game = new ChessGame(board)
-        val startCoord = Coordinate(0, 0).get
-
-        val expectedValidMoves = Set(
-          Coordinate(1, 1)
-        ).flatten
-
-        val actualValidMoves =
-          Direction.values.flatMap(dir => getValidMovesInDir(game, startCoord, dir)).toSet
-
-        actualValidMoves shouldBe expectedValidMoves
-      }
-
-      "queen unblocked" in {
+    "getAllPossibleMoves" should {
+      "queen" in {
         val board: Board = Array(
           Array(noPiece, whitePawn, noPiece, whitePawn),
           Array(noPiece, blackPawn, noPiece, noPiece),
@@ -48,10 +27,148 @@ class MoveValidatorSpec extends AnyWordSpec with should.Matchers {
           Coordinate(4, 3),
         ).flatten
 
-        val actualValidMoves =
-          Direction.values.flatMap(dir => getValidMovesInDir(game, startCoord, dir)).toSet
 
-        actualValidMoves shouldBe expectedValidMoves
+        getAllPossibleMoves(game, startCoord) shouldBe expectedValidMoves
+      }
+
+      "king" in {
+        val board: Board = Array(
+          Array(noPiece, whitePawn, noPiece,   noPiece),
+          Array(noPiece, blackPawn, whitePawn, noPiece),
+          Array(noPiece, whiteKing, noPiece,   whitePawn),
+          Array(noPiece, blackPawn, noPiece,   noPiece),
+          Array(noPiece, blackPawn, noPiece,   blackPawn),
+        )
+        val game = new ChessGame(board)
+        val startCoord = Coordinate(2, 1).get
+
+        val expectedValidMoves = Set(
+          Coordinate(1, 1), Coordinate(1, 0),
+          Coordinate(2, 0), Coordinate(2, 2),
+          Coordinate(3, 0), Coordinate(3, 1), Coordinate(3, 2),
+        ).flatten
+
+        getAllPossibleMoves(game, startCoord) shouldBe expectedValidMoves
+      }
+
+      "rook" in {
+        val board: Board = Array(
+          Array(noPiece, blackPawn, noPiece, noPiece),
+          Array(noPiece, whiteRook, noPiece, whitePawn),
+          Array(noPiece, blackPawn, noPiece, noPiece),
+        )
+        val game = new ChessGame(board)
+        val startCoord = Coordinate(1, 1).get
+
+        val expectedValidMoves = Set(
+          Coordinate(0, 1),
+          Coordinate(1, 0), Coordinate(1, 2),
+          Coordinate(2, 1)
+        ).flatten
+
+
+        getAllPossibleMoves(game, startCoord) shouldBe expectedValidMoves
+      }
+
+      "bishop" in {
+        val board: Board = Array(
+          Array(noPiece, noPiece,     noPiece, whitePawn),
+          Array(noPiece, noPiece,     noPiece, noPiece),
+          Array(noPiece, whiteBishop, noPiece, noPiece),
+          Array(noPiece, noPiece,     noPiece, noPiece),
+          Array(noPiece, noPiece,     noPiece, blackPawn),
+        )
+        val game = new ChessGame(board)
+        val startCoord = Coordinate(2, 1).get
+
+        val expectedValidMoves = Set(
+          Coordinate(1, 0), Coordinate(1, 2),
+          Coordinate(3, 0), Coordinate(3, 2),
+          Coordinate(4, 3),
+        ).flatten
+
+
+        getAllPossibleMoves(game, startCoord) shouldBe expectedValidMoves
+      }
+
+      "knight empty" in {
+        val board: Board = Array(
+          Array(noPiece, noPiece, noPiece,     noPiece, noPiece),
+          Array(noPiece, noPiece, noPiece,     noPiece, noPiece),
+          Array(noPiece, noPiece, whiteKnight, noPiece, noPiece),
+          Array(noPiece, noPiece, noPiece,     noPiece, noPiece),
+          Array(noPiece, noPiece, noPiece,     noPiece, noPiece),
+        )
+        val game = new ChessGame(board)
+        val startCoord = Coordinate(2, 2).get
+
+        val expectedValidMoves = Set(
+          Coordinate(0, 1), Coordinate(0, 3),
+          Coordinate(1, 0), Coordinate(1, 4),
+          Coordinate(3, 0), Coordinate(3, 4),
+          Coordinate(4, 1), Coordinate(4, 3),
+        ).flatten
+
+
+        getAllPossibleMoves(game, startCoord) shouldBe expectedValidMoves
+      }
+
+      "knight" in {
+        val board: Board = Array(
+          Array(noPiece, blackPawn, noPiece,     whitePawn, noPiece),
+          Array(noPiece, noPiece,   noPiece,     noPiece,   noPiece),
+          Array(noPiece, noPiece,   whiteKnight, noPiece,   noPiece),
+          Array(noPiece, noPiece,   noPiece,     noPiece,   noPiece),
+          Array(noPiece, noPiece,   noPiece,     noPiece,   noPiece),
+        )
+        val game = new ChessGame(board)
+        val startCoord = Coordinate(2, 2).get
+
+        val expectedValidMoves = Set(
+          Coordinate(0, 1),
+          Coordinate(1, 0), Coordinate(1, 4),
+          Coordinate(3, 0), Coordinate(3, 4),
+          Coordinate(4, 1), Coordinate(4, 3),
+        ).flatten
+
+
+        getAllPossibleMoves(game, startCoord) shouldBe expectedValidMoves
+      }
+
+      "pawn" in {
+        val board: Board = Array(
+          Array(noPiece,   noPiece,   noPiece,   noPiece),
+          Array(noPiece,   noPiece,   noPiece,   noPiece),
+          Array(noPiece,   whitePawn, noPiece,   noPiece),
+          Array(whitePawn, noPiece,   blackPawn, noPiece),
+        )
+        val game = new ChessGame(board)
+        val startCoord = Coordinate(2, 1).get
+
+        val expectedValidMoves = Set(
+          Coordinate(3, 1), Coordinate(3, 2),
+        ).flatten
+
+        getAllPossibleMoves(game, startCoord) shouldBe expectedValidMoves
+      }
+
+      "pawn at starting pos" in {
+        val board: Board = Array(
+          Array(noPiece,   noPiece,   noPiece,   noPiece),
+          Array(noPiece,   whitePawn, noPiece,   noPiece),
+          Array(whitePawn, noPiece,   blackPawn, noPiece),
+          Array(noPiece,   noPiece,   noPiece,   noPiece),
+          Array(noPiece,   noPiece,   noPiece,   noPiece),
+        )
+        val game = new ChessGame(board)
+        val startCoord = Coordinate(1, 1).get
+
+        val expectedValidMoves = Set(
+          Coordinate(2, 1), Coordinate(2, 2),
+          Coordinate(3, 1)
+        ).flatten
+
+        getAllPossibleMoves(game, startCoord) shouldBe expectedValidMoves
       }
     }
 

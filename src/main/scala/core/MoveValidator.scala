@@ -2,27 +2,29 @@ package core
 
 import core.ChessGame.defaultBoardDimension
 import core.Color.{Black, White}
-import core.Direction.{Down, DownLeft, DownRight, Up, UpLeft, UpRight}
-import core.Piece.{King, Pawn, Rook}
+import core.Direction._
+import core.Piece._
 
-import math._
+import scala.math._
 
 class CoordinateDTO(val file: Char, val rank: Int){
   def toCoordinate: Coordinate = new Coordinate(file - 'a', rank - 1)
 }
-case class Coordinate(row: Int, col: Int){
+
+case class Coordinate(val row: Int, val col: Int){
   def toCoordinateDTO: CoordinateDTO = new CoordinateDTO((row + 'a').toChar, col + 1)
 }
 
-object Coordinate{
-  def apply(row: Int, col: Int): Option[Coordinate] =
+object Coordinate {
+  def apply(row: Int, col: Int): Option[Coordinate] = apply(row, col, defaultBoardDimension, defaultBoardDimension)
+  def apply(row: Int, col: Int, dimRow: Int, dimCol: Int): Option[Coordinate] =
     for {
-      row <- validateDimention(row)
-      col <- validateDimention(col)
+      row <- validateDimention(row, dimRow)
+      col <- validateDimention(col, dimCol)
     } yield new Coordinate(row, col)
 
-  def validateDimention(dim: Int): Option[Int] =
-    if(dim >= 0 && dim < defaultBoardDimension) Some(dim) else None
+  def validateDimention(i: Int, dim: Int): Option[Int] =
+    if(i >= 0 && i < dim) Some(i) else None
 }
 
 object CoordinateDTO{
@@ -36,7 +38,7 @@ object CoordinateDTO{
     if(file >= 'a' && file <='z') Some(file) else None
 
   def validateRank(rank: Int): Option[Int] =
-    if(rank > 0 && rank <= 8) Some(rank) else None
+    if(rank > 0 && rank <= defaultBoardDimension) Some(rank) else None
 }
 
 case class Move(from: Coordinate, to: Coordinate)
@@ -53,39 +55,69 @@ object MoveValidator {
     } yield move
   }
 
-  def hasValidPath(game: ChessGame, move: Move): Boolean = {
-    val startPiece = game.getPiece(move.from).get
-    val startCoord = move.from
+  def hasValidPath(game: ChessGame, move: Move): Boolean = getAllPossibleMoves(game, move.from).contains(move.to)
+
+  def getAllPossibleMoves(game: ChessGame, pieceCoord: Coordinate): Set[Coordinate] = {
+    val startPiece = game.getPiece(pieceCoord).get
     startPiece match {
       case GamePiece(King, _) =>
-        val possibleCoordinates = for {
-          i <- startCoord.row - 1 to startCoord.row + 1
-          j <- startCoord.col - 1 to startCoord.col + 1
-        } yield Coordinate(i, j)
+          Direction.values.flatMap(dir => getValidMovesInDir(game, pieceCoord, dir, 1)).toSet
 
-        possibleCoordinates.contains(move.to)
+      case GamePiece(Queen, _) =>
+          Direction.values.flatMap(dir => getValidMovesInDir(game, pieceCoord, dir)).toSet
+
       case GamePiece(Rook, _) =>
-        val possibleMoves =
-          getValidMovesDown(game, move.from) ++
-            getValidMovesUp(game, move.from) ++
-            getValidMovesLeft(game, move.from) ++
-            getValidMovesRight(game, move.from)
+          getValidMovesDown(game, pieceCoord) ++
+            getValidMovesUp(game, pieceCoord) ++
+            getValidMovesLeft(game, pieceCoord) ++
+            getValidMovesRight(game, pieceCoord)
 
-        possibleMoves.contains(move.to)
-      case _ => false
+      case GamePiece(Bishop, _) =>
+          getValidMovesUpRight(game, pieceCoord) ++
+            getValidMovesUpLeft(game, pieceCoord) ++
+            getValidMovesDownRight(game, pieceCoord) ++
+            getValidMovesDownLeft(game, pieceCoord)
+
+      case GamePiece(Pawn, color) =>
+        val maxMovesForward =
+          if (isPawnAtStartPos(pieceCoord, color)) 2 else 1
+
+        getValidMovesInDir(game, pieceCoord, getForwardDir(color), maxMovesForward) ++
+          getPawnAttackMoves(game, pieceCoord)
+
+      case GamePiece(Knight, _) =>
+        val res1 = for {
+          rowOffset <- List(-2, 2)
+          colOffset <- List(-1, 1)
+        } yield Coordinate(pieceCoord.row + rowOffset, pieceCoord.col + colOffset, game.dimensionRow, game.dimensionCol)
+        val res2 = for {
+          rowOffset <- List(-1, 1)
+          colOffset <- List(-2, 2)
+        } yield Coordinate(pieceCoord.row + rowOffset, pieceCoord.col + colOffset, game.dimensionRow, game.dimensionCol)
+
+        (res1 ++ res2).flatten.filter(coord => isNotAlly(game.getPiece(coord), startPiece.color)).toSet
     }
   }
 
-
-  def getValidMovesForward(game: ChessGame, coord: Coordinate): Set[Coordinate] = {
-    val startPiece = game.getPiece(coord).get
-    startPiece.color match {
-      case White =>
-        getValidMovesUp(game, coord)
-      case Black =>
-        getValidMovesDown(game, coord)
+  def getPawnAttackMoves(game: ChessGame, startCoord: Coordinate): Set[Coordinate] = {
+    val startPiece = game.getPiece(startCoord).get
+    val possibleAttackCoord = getForwardDir(startPiece.color) match {
+      case Up =>
+        getValidMovesUpRight(game, startCoord, 1) ++
+        getValidMovesUpLeft(game, startCoord, 1)
+      case Down =>
+        getValidMovesDownRight(game, startCoord, 1) ++
+        getValidMovesDownLeft(game, startCoord, 1)
     }
+
+    possibleAttackCoord.filter(coord => isEnemy(game.getPiece(coord), startPiece.color.opposite))
   }
+
+  def getForwardDir(color: Color): Direction =
+    color match {
+      case Black => Up
+      case White => Down
+    }
 
   def getValidMovesUp(game: ChessGame, coord: Coordinate, maxMoves: Int = defaultBoardDimension): Set[Coordinate] = getValidMovesInDir(game, coord, Direction.Up, maxMoves)
   def getValidMovesDown(game: ChessGame, coord: Coordinate, maxMoves: Int = defaultBoardDimension): Set[Coordinate] = getValidMovesInDir(game, coord, Direction.Down, maxMoves)
@@ -97,7 +129,7 @@ object MoveValidator {
   def getValidMovesDownRight(game: ChessGame, coord: Coordinate, maxMoves: Int = defaultBoardDimension): Set[Coordinate] = getValidMovesInDir(game, coord, Direction.DownRight, maxMoves)
   def getValidMovesDownLeft(game: ChessGame, coord: Coordinate, maxMoves: Int = defaultBoardDimension): Set[Coordinate] = getValidMovesInDir(game, coord, Direction.DownLeft, maxMoves)
 
-  //TODO Fix names and genaral refactoring of this garbage code
+  //TODO Fix names and general refactoring of this garbage code
   def getValidMovesInDir(game: ChessGame, coord: Coordinate, dir: Direction, maxMoves1: Int = defaultBoardDimension): Set[Coordinate] = {
     val startPiece = game.getPiece(coord).get
     val startRow = coord.row
@@ -248,6 +280,11 @@ object MoveValidator {
     case _ => false
   }
 
+  def isNotAlly(targetPiece: Option[GamePiece], allyColor: Color): Boolean = targetPiece match {
+    case Some(GamePiece(_, color)) if color == allyColor => false
+    case _ => true
+  }
+
   def isValidStart(gamePiece: GamePiece, turn: Color): Boolean = gamePiece.color == turn
 
   def isValidTarget(game: ChessGame, pieceCoord: Coordinate): Boolean = game.getPiece(pieceCoord) match {
@@ -271,8 +308,6 @@ object MoveValidator {
 //        if(isPawnAtStartPos(pieceCoord, color))
 //          possibleCoordinates :+ Some(pieceCoord.copy(y = pieceCoord.y + 2))
 //    }
-
-//  }
 
   private def isPawnAtStartPos(coord: Coordinate, color: Color): Boolean = {
     val whiteStartRow = 1
