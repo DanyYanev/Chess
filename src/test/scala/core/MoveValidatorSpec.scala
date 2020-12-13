@@ -11,11 +11,11 @@ class MoveValidatorSpec extends AnyWordSpec with should.Matchers {
     "getAllPossibleMoves" should {
       "queen" in {
         val board: Board = Array(
-          Array(noPiece, whitePawn, noPiece, whitePawn),
-          Array(noPiece, blackPawn, noPiece, noPiece),
+          Array(noPiece, whitePawn,  noPiece, whitePawn),
+          Array(noPiece, blackPawn,  noPiece, noPiece),
           Array(noPiece, whiteQueen, noPiece, whitePawn),
-          Array(noPiece, blackPawn,   noPiece, noPiece),
-          Array(noPiece, blackPawn, noPiece, blackPawn),
+          Array(noPiece, blackPawn,  noPiece, noPiece),
+          Array(noPiece, blackPawn,  noPiece, blackPawn),
         )
         val game = new ChessGame(board)
         val startCoord = Coordinate(2, 1).get

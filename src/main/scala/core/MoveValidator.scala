@@ -8,12 +8,10 @@ import core.Piece._
 import scala.math._
 
 class CoordinateDTO(val file: Char, val rank: Int){
-  def toCoordinate: Coordinate = new Coordinate(file - 'a', rank - 1)
+  def toCoordinate: Coordinate = new Coordinate(rank - 1, file - 'a')
 }
 
-case class Coordinate(val row: Int, val col: Int){
-  def toCoordinateDTO: CoordinateDTO = new CoordinateDTO((row + 'a').toChar, col + 1)
-}
+case class Coordinate(row: Int, col: Int)
 
 object Coordinate {
   def apply(row: Int, col: Int): Option[Coordinate] = apply(row, col, defaultBoardDimension, defaultBoardDimension)
@@ -183,7 +181,7 @@ object MoveValidator {
           }.flatMap(validCol => Coordinate(coord.row, validCol)).toSet
       case Direction.Right =>
         val maxMoves = min(game.dimensionCol - 1, maxMoves1)
-        val maxDistance = min(maxMoves, game.dimensionCol - 1 - coord.row)
+        val maxDistance = min(maxMoves, game.dimensionCol - 1 - coord.col)
         Iterator.iterate(startCol + 1, maxDistance)(_ + 1)
           .takeWhile {
             col =>
@@ -293,28 +291,12 @@ object MoveValidator {
     case _ => false
   }
 
-//  def getAvailableMoves(game: ChessGame, pieceCoord: Coordinate): Option[List[Coordinate]] = {
-//    game.getPiece(pieceCoord).map {
-//      case GamePiece(King, color) =>
-//        val possibleCoordinates = for {
-//          i <- pieceCoord.x - 1 to pieceCoord.x + 1
-//          j <- pieceCoord.y - 1 to pieceCoord.y + 1
-//        } yield Coordinate(i, j)
-//
-//        possibleCoordinates.flatten.filter(_.equals(pieceCoord)).toList
-//
-//      case GamePiece(Pawn, color) =>
-//        var possibleCoordinates = List[Option[Coordinate]]()
-//        if(isPawnAtStartPos(pieceCoord, color))
-//          possibleCoordinates :+ Some(pieceCoord.copy(y = pieceCoord.y + 2))
-//    }
-
   private def isPawnAtStartPos(coord: Coordinate, color: Color): Boolean = {
     val whiteStartRow = 1
-    val blackStartRow = defaultBoardDimension - 1
+    val blackStartRow = defaultBoardDimension - 1 - 1
     color match {
-      case White => coord.col == whiteStartRow
-      case Black => coord.col == blackStartRow
+      case White => coord.row == whiteStartRow
+      case Black => coord.row == blackStartRow
     }
   }
 }

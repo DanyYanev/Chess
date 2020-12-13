@@ -35,7 +35,7 @@ object SelectGame {
       override def body(): MenuItem = {
         println(s"Playing ${file.getName}")
         val input = new UserInputFile(file.getAbsolutePath)
-        val engine = new ChessEngine(input).run()
+        new ChessEngine(input).run()
         Exit()
       }
     }

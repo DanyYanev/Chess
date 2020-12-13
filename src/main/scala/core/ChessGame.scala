@@ -1,31 +1,82 @@
 package core
 
-import core.ChessGame.{Board, defaultBoardDimension, defaultSetup, optionToString}
+import core.ChessGame.{Board, blackKing, defaultSetup, getAllPossibleMovesForColor, optionToString, whiteKing}
+import core.Color.{Black, White}
+import core.MoveValidator.{getAllPossibleMoves, validateMove}
+
+import scala.Console.println
 
 case class ChessGame(board: Board = defaultSetup, turn: Color = Color.White) {
   val dimensionRow = board.length
   val dimensionCol = board(0).length
-  val whiteKing: Coordinate = Coordinate(0, 4).get
-  val blackKing: Coordinate = Coordinate(7, 4).get
+  def whiteKingPos: Coordinate = find(whiteKing).get
+  def blackKingPos: Coordinate = find(blackKing).get
+  val inCheck = getAllPossibleMovesForColor(this, turn).contains(alliedKingPos)
 
-  def nextTurn(move: Move): ChessGame = {
-    this
+  def alliedKingPos: Coordinate = turn match {
+    case White => whiteKingPos
+    case Black => blackKingPos
+  }
+  def enemyKingPos: Coordinate = turn match {
+    case White => blackKingPos
+    case Black => whiteKingPos
+  }
+
+  def nextTurn(move: Move): Option[ChessGame] = {
+    validateMove(this, move).flatMap {
+      validMove =>
+        val newBoard = board
+        newBoard(validMove.to.row)(validMove.to.col) = board(validMove.from.row)(validMove.from.col)
+        newBoard(validMove.from.row)(validMove.from.col) = None
+        ChessGame(newBoard, turn.opposite)
+    }
   }
 
   def printBoard = {
+    println("=========================")
+    if (inCheck) println(s"$turn, in check")
     println(toASCIIBoard.replace("*", " "))
   }
 
   def toASCIIBoard: String = {
-    val stringBoard = board.map(_.map(optionToString))
+    val stringBoard = board.map(_.map(optionToString)).reverse
     stringBoard.map(_.mkString(" ")).mkString("\n")
   }
+
+  def find(searchedPiece: GamePiece): Option[Coordinate] =
+    getAllCoordinates.find(coord => getPiece(coord).contains(searchedPiece))
+
+  def getAllCoordinates: Set[Coordinate] =
+    (for {
+      i <- 0 until dimensionRow
+      j <- 0 until dimensionCol
+    } yield Coordinate(i, j, dimensionRow, dimensionCol)).flatten.toSet
 
   def getPiece(coordinate: Coordinate): Option[GamePiece] =
     board(coordinate.row)(coordinate.col)
 }
 
 object ChessGame {
+
+  def apply(board: Board = defaultSetup, turn: Color = Color.White): Option[ChessGame] = {
+    val game = new ChessGame(board, turn)
+
+    if (getAllPossibleMovesForColor(game, game.turn).contains(game.enemyKingPos))
+      None
+    else
+      Some(game)
+  }
+
+  def getAllPossibleMovesForColor(game: ChessGame, color: Color): Set[Coordinate] = {
+    val allies = game.getAllCoordinates.filter(coord => isAlly(game, coord, color))
+    allies.flatMap(ally => getAllPossibleMoves(game, ally))
+  }
+
+  def isAlly(game: ChessGame, coordinate: Coordinate, alliedColor: Color): Boolean = game.getPiece(coordinate) match {
+    case Some(GamePiece(_, color)) if color == alliedColor => true
+    case _ => false
+  }
+
   val defaultBoardDimension = 8
   type Board = Array[Array[Option[GamePiece]]]
 
@@ -45,7 +96,7 @@ object ChessGame {
   val blackQueen = GamePiece(Piece.Queen, Color.Black)
   val blackKing = GamePiece(Piece.King, Color.Black)
 
-  val defaultSetup: Board = Array(
+  def defaultSetup: Board = Array(
     Array(whiteRook, whiteKnight, whiteBishop, whiteQueen, whiteKing, whiteBishop, whiteKnight, whiteRook),
     Array(whitePawn, whitePawn, whitePawn, whitePawn, whitePawn, whitePawn, whitePawn, whitePawn),
     Array(noPiece, noPiece, noPiece, noPiece, noPiece, noPiece, noPiece, noPiece),
