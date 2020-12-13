@@ -4,20 +4,24 @@ import core.ChessGame.{Board, blackKing, defaultSetup, getAllPossibleMovesForCol
 import core.Color.{Black, White}
 import core.MoveValidator.{getAllPossibleMoves, validateMove}
 
+import java.util
 import scala.Console.println
 
 case class ChessGame(board: Board = defaultSetup, turn: Color = Color.White) {
   val dimensionRow = board.length
   val dimensionCol = board(0).length
-  def whiteKingPos: Coordinate = find(whiteKing).get
-  def blackKingPos: Coordinate = find(blackKing).get
-  val inCheck = getAllPossibleMovesForColor(this, turn).contains(alliedKingPos)
+  val inCheck : Boolean =
+    alliedKingPos
+      .fold(false)(alliedKing => getAllPossibleMovesForColor(this, turn.opposite).contains(alliedKing))
 
-  def alliedKingPos: Coordinate = turn match {
+  def whiteKingPos: Option[Coordinate] = find(whiteKing)
+  def blackKingPos: Option[Coordinate] = find(blackKing)
+
+  def alliedKingPos: Option[Coordinate] = turn match {
     case White => whiteKingPos
     case Black => blackKingPos
   }
-  def enemyKingPos: Coordinate = turn match {
+  def enemyKingPos: Option[Coordinate] = turn match {
     case White => blackKingPos
     case Black => whiteKingPos
   }
@@ -54,6 +58,22 @@ case class ChessGame(board: Board = defaultSetup, turn: Color = Color.White) {
 
   def getPiece(coordinate: Coordinate): Option[GamePiece] =
     board(coordinate.row)(coordinate.col)
+
+  def canEqual(other: Any): Boolean = other.isInstanceOf[ChessGame]
+
+  //Scala's Array equals method cannot handle multidimensional arrays properly
+  override def equals(other: Any): Boolean = other match {
+    case that: ChessGame =>
+      (that canEqual this) &&
+        inCheck == that.inCheck &&
+        sameBoard(that.board) &&
+        turn == that.turn
+    case _ => false
+  }
+
+  private def sameBoard(otherBoard: Board): Boolean = {
+    util.Arrays.deepEquals(board.toArray, otherBoard.toArray)
+  }
 }
 
 object ChessGame {
@@ -61,10 +81,10 @@ object ChessGame {
   def apply(board: Board = defaultSetup, turn: Color = Color.White): Option[ChessGame] = {
     val game = new ChessGame(board, turn)
 
-    if (getAllPossibleMovesForColor(game, game.turn).contains(game.enemyKingPos))
-      None
-    else
-      Some(game)
+    for {
+      enemyKing <- game.enemyKingPos
+      if !getAllPossibleMovesForColor(game, game.turn).contains(enemyKing)
+    } yield game
   }
 
   def getAllPossibleMovesForColor(game: ChessGame, color: Color): Set[Coordinate] = {

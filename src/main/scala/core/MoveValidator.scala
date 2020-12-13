@@ -47,6 +47,7 @@ object MoveValidator {
   def validateMove(game: ChessGame, move: Move): Option[Move] = {
     for {
       startPiece <- game.getPiece(move.from)
+      if move.from != move.to
       if isValidStart(startPiece, game.turn)
       if isValidTarget(game, move.to)
       if hasValidPath(game, move)
