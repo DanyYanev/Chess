@@ -7,42 +7,8 @@ import core.Piece._
 
 import scala.math._
 
-class CoordinateDTO(val file: Char, val rank: Int){
-  def toCoordinate: Coordinate = new Coordinate(rank - 1, file - 'a')
-}
-
-case class Coordinate(row: Int, col: Int)
-
-object Coordinate {
-  def apply(row: Int, col: Int): Option[Coordinate] = apply(row, col, defaultBoardDimension, defaultBoardDimension)
-  def apply(row: Int, col: Int, dimRow: Int, dimCol: Int): Option[Coordinate] =
-    for {
-      row <- validateDimention(row, dimRow)
-      col <- validateDimention(col, dimCol)
-    } yield new Coordinate(row, col)
-
-  def validateDimention(i: Int, dim: Int): Option[Int] =
-    if(i >= 0 && i < dim) Some(i) else None
-}
-
-object CoordinateDTO{
-  def apply(file: Char, rank: Int): Option[CoordinateDTO] =
-    for {
-      maybeFile <- validateFile(file)
-      maybeRank <- validateRank(rank)
-    } yield new CoordinateDTO(maybeFile, maybeRank)
-
-  def validateFile(file: Char): Option[Char] =
-    if(file >= 'a' && file <='z') Some(file) else None
-
-  def validateRank(rank: Int): Option[Int] =
-    if(rank > 0 && rank <= defaultBoardDimension) Some(rank) else None
-}
-
-case class Move(from: Coordinate, to: Coordinate)
-
-object MoveValidator {
-
+trait MoveValidator {
+  this: ChessGame =>
   //Returns Some if move is valid, None otherwise
   def validateMove(game: ChessGame, move: Move): Option[Move] = {
     for {

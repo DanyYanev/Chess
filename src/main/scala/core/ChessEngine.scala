@@ -9,8 +9,8 @@ class ChessEngine(val input: UserInput) {
     var line = input.nextMove()
     while(line != null) {
       val move = for {
-        from <- Coordinate(8 - line(1) - 1, line(0))
-        to <- Coordinate(8 - line(3) - 1, line(2))
+        from <- CoordinateDTO(line(1), line(0)).toCoordinate
+        to <- CoordinateDTO(line(3), line(2)).toCoordinate
       } yield Move(from, to)
 
       move.foreach(validMove => game.nextTurn(validMove).foreach {
