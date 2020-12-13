@@ -5,7 +5,7 @@ import com.whitehatgaming.UserInput
 class ChessEngine(val input: UserInput) {
   var game: ChessGame = new ChessGame()
 
-  def run() = {
+  def run(): Unit = {
     var line = input.nextMove()
     while(line != null) {
       val move = for {
@@ -16,13 +16,9 @@ class ChessEngine(val input: UserInput) {
       move.foreach(validMove => game.nextTurn(validMove).foreach {
         validGame =>
           game = validGame
-          game.printBoard
+          game.printBoard()
       })
       line = input.nextMove()
     }
   }
-}
-
-object ChessEngine {
-
 }

@@ -24,8 +24,12 @@ trait MenuItem {
   }
 
   protected def handleInput(options: List[MenuItem]): MenuItem = {
-    print("Enter choice: ")
-    val choice = scala.io.StdIn.readInt()
+    var choice = -1
+    do {
+      print("Enter choice: ")
+      choice = scala.io.StdIn.readInt()
+    } while (choice > options.length || choice < 1)
+
     options(choiceToIndex(choice))
   }
 

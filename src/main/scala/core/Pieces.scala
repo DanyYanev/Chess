@@ -16,7 +16,7 @@ object GamePiece {
 sealed abstract class Piece(val alias: String) extends EnumEntry
 
 object Piece extends Enum[Piece] {
-  val values = findValues
+  val values: IndexedSeq[Piece] = findValues
 
   case object Empty  extends Piece("*")
   case object Pawn   extends Piece("P")
@@ -32,7 +32,7 @@ sealed trait Color extends EnumEntry {
 }
 
 object Color extends Enum[Color] {
-  val values = findValues
+  val values: IndexedSeq[Color] = findValues
 
   case object White extends Color { override def opposite: Color = Black }
   case object Black extends Color { override def opposite: Color = White }
@@ -41,7 +41,7 @@ object Color extends Enum[Color] {
 sealed trait Direction extends EnumEntry
 
 object Direction extends Enum[Direction] {
-  val values = findValues
+  val values: IndexedSeq[Direction] = findValues
 
   case object Up extends Direction
   case object Down extends Direction

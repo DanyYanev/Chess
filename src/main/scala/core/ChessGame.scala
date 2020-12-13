@@ -1,33 +1,37 @@
 package core
 
-import core.ChessGame.{Board, blackKing, defaultSetup, getAllPossibleMovesForColor, optionToString, whiteKing}
+import core.ChessGame.{Board, blackKing, defaultSetup, optionToString, whiteKing}
 import core.Color.{Black, White}
-import core.MoveValidator.{getAllPossibleMoves, validateMove}
 
 import java.util
 import scala.Console.println
 
-case class ChessGame(board: Board = defaultSetup, turn: Color = Color.White) {
-  val dimensionRow = board.length
-  val dimensionCol = board(0).length
+case class ChessGame(board: Board = defaultSetup, turn: Color = Color.White) extends MoveValidator {
+  val dimensionRow: Int = board.length
+  val dimensionCol: Int = board(0).length
   val inCheck : Boolean =
     alliedKingPos
-      .fold(false)(alliedKing => getAllPossibleMovesForColor(this, turn.opposite).contains(alliedKing))
+      .fold(false)(alliedKing => getAllPossibleMovesForColor(turn.opposite).contains(alliedKing))
 
-  def whiteKingPos: Option[Coordinate] = find(whiteKing)
-  def blackKingPos: Option[Coordinate] = find(blackKing)
+  private def getAllPossibleMovesForColor(color: Color): Set[Coordinate] = {
+    val allies = getAllCoordinates.filter(coord => isAlly(coord, color))
+    allies.flatMap(ally => getAllPossibleMoves(ally))
+  }
 
-  def alliedKingPos: Option[Coordinate] = turn match {
+  private def whiteKingPos: Option[Coordinate] = find(whiteKing)
+  private def blackKingPos: Option[Coordinate] = find(blackKing)
+
+  private def alliedKingPos: Option[Coordinate] = turn match {
     case White => whiteKingPos
     case Black => blackKingPos
   }
-  def enemyKingPos: Option[Coordinate] = turn match {
+  private def enemyKingPos: Option[Coordinate] = turn match {
     case White => blackKingPos
     case Black => whiteKingPos
   }
 
   def nextTurn(move: Move): Option[ChessGame] = {
-    validateMove(this, move).flatMap {
+    validateMove(move).flatMap {
       validMove =>
         val newBoard = board
         newBoard(validMove.to.row)(validMove.to.col) = board(validMove.from.row)(validMove.from.col)
@@ -36,7 +40,10 @@ case class ChessGame(board: Board = defaultSetup, turn: Color = Color.White) {
     }
   }
 
-  def printBoard = {
+  protected def getPiece(coordinate: Coordinate): Option[GamePiece] =
+    board(coordinate.row)(coordinate.col)
+
+  def printBoard(): Unit = {
     println("=========================")
     if (inCheck) println(s"$turn, in check")
     println(toASCIIBoard.replace("*", " "))
@@ -47,17 +54,14 @@ case class ChessGame(board: Board = defaultSetup, turn: Color = Color.White) {
     stringBoard.map(_.mkString(" ")).mkString("\n")
   }
 
-  def find(searchedPiece: GamePiece): Option[Coordinate] =
+  private def find(searchedPiece: GamePiece): Option[Coordinate] =
     getAllCoordinates.find(coord => getPiece(coord).contains(searchedPiece))
 
-  def getAllCoordinates: Set[Coordinate] =
+  private def getAllCoordinates: Set[Coordinate] =
     (for {
       i <- 0 until dimensionRow
       j <- 0 until dimensionCol
     } yield Coordinate(i, j, dimensionRow, dimensionCol)).flatten.toSet
-
-  def getPiece(coordinate: Coordinate): Option[GamePiece] =
-    board(coordinate.row)(coordinate.col)
 
   def canEqual(other: Any): Boolean = other.isInstanceOf[ChessGame]
 
@@ -83,38 +87,28 @@ object ChessGame {
 
     for {
       enemyKing <- game.enemyKingPos
-      if !getAllPossibleMovesForColor(game, game.turn).contains(enemyKing)
+      if !game.getAllPossibleMovesForColor(game.turn).contains(enemyKing)
     } yield game
-  }
-
-  def getAllPossibleMovesForColor(game: ChessGame, color: Color): Set[Coordinate] = {
-    val allies = game.getAllCoordinates.filter(coord => isAlly(game, coord, color))
-    allies.flatMap(ally => getAllPossibleMoves(game, ally))
-  }
-
-  def isAlly(game: ChessGame, coordinate: Coordinate, alliedColor: Color): Boolean = game.getPiece(coordinate) match {
-    case Some(GamePiece(_, color)) if color == alliedColor => true
-    case _ => false
   }
 
   val defaultBoardDimension = 8
   type Board = Array[Array[Option[GamePiece]]]
 
-  val noPiece = None
+  val noPiece: Option[GamePiece] = None
 
-  val whitePawn = GamePiece(Piece.Pawn, Color.White)
-  val whiteRook = GamePiece(Piece.Rook, Color.White)
-  val whiteKnight = GamePiece(Piece.Knight, Color.White)
-  val whiteBishop = GamePiece(Piece.Bishop, Color.White)
-  val whiteQueen = GamePiece(Piece.Queen, Color.White)
-  val whiteKing = GamePiece(Piece.King, Color.White)
+  val whitePawn: GamePiece = GamePiece(Piece.Pawn, Color.White)
+  val whiteRook: GamePiece = GamePiece(Piece.Rook, Color.White)
+  val whiteKnight: GamePiece = GamePiece(Piece.Knight, Color.White)
+  val whiteBishop: GamePiece = GamePiece(Piece.Bishop, Color.White)
+  val whiteQueen: GamePiece = GamePiece(Piece.Queen, Color.White)
+  val whiteKing: GamePiece = GamePiece(Piece.King, Color.White)
 
-  val blackPawn = GamePiece(Piece.Pawn, Color.Black)
-  val blackRook = GamePiece(Piece.Rook, Color.Black)
-  val blackKnight = GamePiece(Piece.Knight, Color.Black)
-  val blackBishop = GamePiece(Piece.Bishop, Color.Black)
-  val blackQueen = GamePiece(Piece.Queen, Color.Black)
-  val blackKing = GamePiece(Piece.King, Color.Black)
+  val blackPawn: GamePiece = GamePiece(Piece.Pawn, Color.Black)
+  val blackRook: GamePiece = GamePiece(Piece.Rook, Color.Black)
+  val blackKnight: GamePiece = GamePiece(Piece.Knight, Color.Black)
+  val blackBishop: GamePiece = GamePiece(Piece.Bishop, Color.Black)
+  val blackQueen: GamePiece = GamePiece(Piece.Queen, Color.Black)
+  val blackKing: GamePiece = GamePiece(Piece.King, Color.Black)
 
   def defaultSetup: Board = Array(
     Array(whiteRook, whiteKnight, whiteBishop, whiteQueen, whiteKing, whiteBishop, whiteKnight, whiteRook),

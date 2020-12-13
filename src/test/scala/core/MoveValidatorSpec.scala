@@ -1,7 +1,6 @@
 package core
 
 import core.ChessGame._
-import core.MoveValidator.{getAllPossibleMoves, getValidMovesInDir}
 import org.scalatest.matchers.should
 import org.scalatest.wordspec.AnyWordSpec
 
@@ -28,7 +27,7 @@ class MoveValidatorSpec extends AnyWordSpec with should.Matchers {
         ).flatten
 
 
-        getAllPossibleMoves(game, startCoord) shouldBe expectedValidMoves
+        game.getAllPossibleMoves(startCoord) shouldBe expectedValidMoves
       }
 
       "king" in {
@@ -48,7 +47,7 @@ class MoveValidatorSpec extends AnyWordSpec with should.Matchers {
           Coordinate(3, 0), Coordinate(3, 1), Coordinate(3, 2),
         ).flatten
 
-        getAllPossibleMoves(game, startCoord) shouldBe expectedValidMoves
+        game.getAllPossibleMoves(startCoord) shouldBe expectedValidMoves
       }
 
       "rook" in {
@@ -67,7 +66,7 @@ class MoveValidatorSpec extends AnyWordSpec with should.Matchers {
         ).flatten
 
 
-        getAllPossibleMoves(game, startCoord) shouldBe expectedValidMoves
+        game.getAllPossibleMoves(startCoord) shouldBe expectedValidMoves
       }
 
       "bishop" in {
@@ -88,7 +87,7 @@ class MoveValidatorSpec extends AnyWordSpec with should.Matchers {
         ).flatten
 
 
-        getAllPossibleMoves(game, startCoord) shouldBe expectedValidMoves
+        game.getAllPossibleMoves(startCoord) shouldBe expectedValidMoves
       }
 
       "knight empty" in {
@@ -110,7 +109,7 @@ class MoveValidatorSpec extends AnyWordSpec with should.Matchers {
         ).flatten
 
 
-        getAllPossibleMoves(game, startCoord) shouldBe expectedValidMoves
+        game.getAllPossibleMoves(startCoord) shouldBe expectedValidMoves
       }
 
       "knight" in {
@@ -132,7 +131,7 @@ class MoveValidatorSpec extends AnyWordSpec with should.Matchers {
         ).flatten
 
 
-        getAllPossibleMoves(game, startCoord) shouldBe expectedValidMoves
+        game.getAllPossibleMoves(startCoord) shouldBe expectedValidMoves
       }
 
       "pawn" in {
@@ -149,7 +148,7 @@ class MoveValidatorSpec extends AnyWordSpec with should.Matchers {
           Coordinate(3, 1), Coordinate(3, 2),
         ).flatten
 
-        getAllPossibleMoves(game, startCoord) shouldBe expectedValidMoves
+        game.getAllPossibleMoves(startCoord) shouldBe expectedValidMoves
       }
 
       "pawn at starting pos" in {
@@ -168,7 +167,7 @@ class MoveValidatorSpec extends AnyWordSpec with should.Matchers {
           Coordinate(3, 1)
         ).flatten
 
-        getAllPossibleMoves(game, startCoord) shouldBe expectedValidMoves
+        game.getAllPossibleMoves(startCoord) shouldBe expectedValidMoves
       }
     }
 
@@ -189,7 +188,7 @@ class MoveValidatorSpec extends AnyWordSpec with should.Matchers {
           Coordinate(2, 2),
         ).flatten
 
-        MoveValidator.getValidMovesDownRight(game, Coordinate(0, 0).get) shouldBe expectedValidMoves
+        game.getValidMovesDownRight(Coordinate(0, 0).get) shouldBe expectedValidMoves
       }
 
       "empty white with limit" in {
@@ -207,7 +206,7 @@ class MoveValidatorSpec extends AnyWordSpec with should.Matchers {
           Coordinate(1, 1),
         ).flatten
 
-        MoveValidator.getValidMovesDownRight(game, Coordinate(0, 0).get, 1) shouldBe expectedValidMoves
+        game.getValidMovesDownRight(Coordinate(0, 0).get, 1) shouldBe expectedValidMoves
       }
 
       "blocked white" in {
@@ -225,7 +224,7 @@ class MoveValidatorSpec extends AnyWordSpec with should.Matchers {
           Coordinate(1, 1),
         ).flatten
 
-        MoveValidator.getValidMovesDownRight(game, Coordinate(0, 0).get) shouldBe expectedValidMoves
+        game.getValidMovesDownRight(Coordinate(0, 0).get) shouldBe expectedValidMoves
       }
 
       "blocked ally white" in {
@@ -241,7 +240,7 @@ class MoveValidatorSpec extends AnyWordSpec with should.Matchers {
 
         val expectedValidMoves = Set.empty
 
-        MoveValidator.getValidMovesDownRight(game, Coordinate(0, 0).get) shouldBe expectedValidMoves
+        game.getValidMovesDownRight(Coordinate(0, 0).get) shouldBe expectedValidMoves
       }
     }
 
@@ -262,7 +261,7 @@ class MoveValidatorSpec extends AnyWordSpec with should.Matchers {
           Coordinate(2, 0),
         ).flatten
 
-        MoveValidator.getValidMovesDownLeft(game, Coordinate(0, 2).get) shouldBe expectedValidMoves
+        game.getValidMovesDownLeft(Coordinate(0, 2).get) shouldBe expectedValidMoves
       }
 
       "empty white with limit" in {
@@ -280,7 +279,7 @@ class MoveValidatorSpec extends AnyWordSpec with should.Matchers {
           Coordinate(1, 1),
         ).flatten
 
-        MoveValidator.getValidMovesDownLeft(game, Coordinate(0, 2).get, 1) shouldBe expectedValidMoves
+        game.getValidMovesDownLeft(Coordinate(0, 2).get, 1) shouldBe expectedValidMoves
       }
 
       "blocked white" in {
@@ -298,7 +297,7 @@ class MoveValidatorSpec extends AnyWordSpec with should.Matchers {
           Coordinate(1, 1),
         ).flatten
 
-        MoveValidator.getValidMovesDownLeft(game, Coordinate(0, 2).get) shouldBe expectedValidMoves
+        game.getValidMovesDownLeft(Coordinate(0, 2).get) shouldBe expectedValidMoves
       }
 
       "blocked ally white" in {
@@ -314,7 +313,7 @@ class MoveValidatorSpec extends AnyWordSpec with should.Matchers {
 
         val expectedValidMoves = Set.empty
 
-        MoveValidator.getValidMovesDownLeft(game, Coordinate(0, 2).get) shouldBe expectedValidMoves
+        game.getValidMovesDownLeft(Coordinate(0, 2).get) shouldBe expectedValidMoves
       }
     }
 
@@ -335,7 +334,7 @@ class MoveValidatorSpec extends AnyWordSpec with should.Matchers {
           Coordinate(0, 0),
         ).flatten
 
-        MoveValidator.getValidMovesUpLeft(game, Coordinate(2, 2).get) shouldBe expectedValidMoves
+        game.getValidMovesUpLeft(Coordinate(2, 2).get) shouldBe expectedValidMoves
       }
 
       "empty white with limit" in {
@@ -353,7 +352,7 @@ class MoveValidatorSpec extends AnyWordSpec with should.Matchers {
           Coordinate(1, 1),
         ).flatten
 
-        MoveValidator.getValidMovesUpLeft(game, Coordinate(2, 2).get, 1) shouldBe expectedValidMoves
+        game.getValidMovesUpLeft(Coordinate(2, 2).get, 1) shouldBe expectedValidMoves
       }
 
       "blocked white" in {
@@ -371,7 +370,7 @@ class MoveValidatorSpec extends AnyWordSpec with should.Matchers {
           Coordinate(1, 1),
         ).flatten
 
-        MoveValidator.getValidMovesUpLeft(game, Coordinate(2, 2).get) shouldBe expectedValidMoves
+        game.getValidMovesUpLeft(Coordinate(2, 2).get) shouldBe expectedValidMoves
       }
 
       "blocked ally white" in {
@@ -387,7 +386,7 @@ class MoveValidatorSpec extends AnyWordSpec with should.Matchers {
 
         val expectedValidMoves = Set.empty
 
-        MoveValidator.getValidMovesUpLeft(game, Coordinate(2, 2).get) shouldBe expectedValidMoves
+        game.getValidMovesUpLeft(Coordinate(2, 2).get) shouldBe expectedValidMoves
       }
     }
 
@@ -408,7 +407,7 @@ class MoveValidatorSpec extends AnyWordSpec with should.Matchers {
           Coordinate(0, 2),
         ).flatten
 
-        MoveValidator.getValidMovesUpRight(game, Coordinate(2, 0).get) shouldBe expectedValidMoves
+        game.getValidMovesUpRight(Coordinate(2, 0).get) shouldBe expectedValidMoves
       }
 
       "empty white with limit" in {
@@ -426,7 +425,7 @@ class MoveValidatorSpec extends AnyWordSpec with should.Matchers {
           Coordinate(1, 1),
         ).flatten
 
-        MoveValidator.getValidMovesUpRight(game, Coordinate(2, 0).get, 1) shouldBe expectedValidMoves
+        game.getValidMovesUpRight(Coordinate(2, 0).get, 1) shouldBe expectedValidMoves
       }
 
       "blocked white" in {
@@ -444,7 +443,7 @@ class MoveValidatorSpec extends AnyWordSpec with should.Matchers {
           Coordinate(1, 1),
         ).flatten
 
-        MoveValidator.getValidMovesUpRight(game, Coordinate(2, 0).get) shouldBe expectedValidMoves
+        game.getValidMovesUpRight(Coordinate(2, 0).get) shouldBe expectedValidMoves
       }
 
       "blocked ally white" in {
@@ -460,7 +459,7 @@ class MoveValidatorSpec extends AnyWordSpec with should.Matchers {
 
         val expectedValidMoves = Set.empty
 
-        MoveValidator.getValidMovesUpRight(game, Coordinate(2, 0).get) shouldBe expectedValidMoves
+        game.getValidMovesUpRight(Coordinate(2, 0).get) shouldBe expectedValidMoves
       }
     }
 
@@ -482,7 +481,7 @@ class MoveValidatorSpec extends AnyWordSpec with should.Matchers {
           Coordinate(3, 0),
         ).flatten
 
-        MoveValidator.getValidMovesUp(game, Coordinate(4, 0).get) shouldBe expectedValidMoves
+        game.getValidMovesUp(Coordinate(4, 0).get) shouldBe expectedValidMoves
       }
 
       "empty white with limit" in {
@@ -500,7 +499,7 @@ class MoveValidatorSpec extends AnyWordSpec with should.Matchers {
           Coordinate(3, 0),
         ).flatten
 
-        MoveValidator.getValidMovesUp(game, Coordinate(4, 0).get, 2) shouldBe expectedValidMoves
+        game.getValidMovesUp(Coordinate(4, 0).get, 2) shouldBe expectedValidMoves
       }
 
       "white enemy piece in the way" in {
@@ -518,7 +517,7 @@ class MoveValidatorSpec extends AnyWordSpec with should.Matchers {
           Coordinate(3, 0),
         ).flatten
 
-        MoveValidator.getValidMovesUp(game, Coordinate(4, 0).get) shouldBe expectedValidMoves
+        game.getValidMovesUp(Coordinate(4, 0).get) shouldBe expectedValidMoves
       }
 
       "black ally piece in the way" in {
@@ -535,7 +534,7 @@ class MoveValidatorSpec extends AnyWordSpec with should.Matchers {
           Coordinate(3, 0),
         ).flatten
 
-        MoveValidator.getValidMovesUp(game, Coordinate(4, 0).get) shouldBe expectedValidMoves
+        game.getValidMovesUp(Coordinate(4, 0).get) shouldBe expectedValidMoves
       }
     }
 
@@ -557,7 +556,7 @@ class MoveValidatorSpec extends AnyWordSpec with should.Matchers {
           Coordinate(4, 0),
         ).flatten
 
-        MoveValidator.getValidMovesDown(game, Coordinate(0, 0).get) shouldBe expectedValidMoves
+        game.getValidMovesDown(Coordinate(0, 0).get) shouldBe expectedValidMoves
       }
 
       "empty white with limit" in {
@@ -575,7 +574,7 @@ class MoveValidatorSpec extends AnyWordSpec with should.Matchers {
           Coordinate(2, 0),
         ).flatten
 
-        MoveValidator.getValidMovesDown(game, Coordinate(0, 0).get, 2) shouldBe expectedValidMoves
+        game.getValidMovesDown(Coordinate(0, 0).get, 2) shouldBe expectedValidMoves
       }
 
       "white enemy piece in the way" in {
@@ -593,7 +592,7 @@ class MoveValidatorSpec extends AnyWordSpec with should.Matchers {
           Coordinate(2, 0),
         ).flatten
 
-        MoveValidator.getValidMovesDown(game, Coordinate(0, 0).get) shouldBe expectedValidMoves
+        game.getValidMovesDown(Coordinate(0, 0).get) shouldBe expectedValidMoves
       }
 
       "black ally piece in the way" in {
@@ -610,7 +609,7 @@ class MoveValidatorSpec extends AnyWordSpec with should.Matchers {
           Coordinate(1, 0),
         ).flatten
 
-        MoveValidator.getValidMovesDown(game, Coordinate(0, 0).get) shouldBe expectedValidMoves
+        game.getValidMovesDown(Coordinate(0, 0).get) shouldBe expectedValidMoves
       }
     }
 
@@ -627,7 +626,7 @@ class MoveValidatorSpec extends AnyWordSpec with should.Matchers {
           Coordinate(0, 2),
         ).flatten
 
-        MoveValidator.getValidMovesLeft(game, Coordinate(0, 3).get) shouldBe expectedValidMoves
+        game.getValidMovesLeft(Coordinate(0, 3).get) shouldBe expectedValidMoves
       }
 
       "empty white with limit" in {
@@ -641,7 +640,7 @@ class MoveValidatorSpec extends AnyWordSpec with should.Matchers {
           Coordinate(0, 2),
         ).flatten
 
-        MoveValidator.getValidMovesLeft(game, Coordinate(0, 3).get, 2) shouldBe expectedValidMoves
+        game.getValidMovesLeft(Coordinate(0, 3).get, 2) shouldBe expectedValidMoves
       }
 
       "pawn blocks white" in {
@@ -655,7 +654,7 @@ class MoveValidatorSpec extends AnyWordSpec with should.Matchers {
           Coordinate(0, 2),
         ).flatten
 
-        MoveValidator.getValidMovesLeft(game, Coordinate(0, 3).get) shouldBe expectedValidMoves
+        game.getValidMovesLeft(Coordinate(0, 3).get) shouldBe expectedValidMoves
       }
     }
 
@@ -672,7 +671,7 @@ class MoveValidatorSpec extends AnyWordSpec with should.Matchers {
           Coordinate(0, 3),
         ).flatten
 
-        MoveValidator.getValidMovesRight(game, Coordinate(0, 0).get) shouldBe expectedValidMoves
+        game.getValidMovesRight(Coordinate(0, 0).get) shouldBe expectedValidMoves
       }
 
       "empty white with limit" in {
@@ -686,7 +685,7 @@ class MoveValidatorSpec extends AnyWordSpec with should.Matchers {
           Coordinate(0, 2),
         ).flatten
 
-        MoveValidator.getValidMovesRight(game, Coordinate(0, 0).get, 2) shouldBe expectedValidMoves
+        game.getValidMovesRight(Coordinate(0, 0).get, 2) shouldBe expectedValidMoves
       }
 
       "pawn blocks white" in {
@@ -700,7 +699,7 @@ class MoveValidatorSpec extends AnyWordSpec with should.Matchers {
           Coordinate(0, 2),
         ).flatten
 
-        MoveValidator.getValidMovesRight(game, Coordinate(0, 0).get) shouldBe expectedValidMoves
+        game.getValidMovesRight(Coordinate(0, 0).get) shouldBe expectedValidMoves
       }
     }
   }
