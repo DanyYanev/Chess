@@ -131,7 +131,6 @@ trait MoveValidator {
       case White => Down
     }
 
-  //TODO Fix names and general refactoring of this garbage code
   private def getValidMovesInDir(
     startCoord: Coordinate,
     dir: Direction,
